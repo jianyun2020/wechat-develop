@@ -1,0 +1,17 @@
+{
+  "name": "wechat-server",
+  "version": "1.0.0",
+  "description": "微信官方文档·公众号->开始开发->[接口测试号申请](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "sha1": "^1.1.1"
+  }
+}
