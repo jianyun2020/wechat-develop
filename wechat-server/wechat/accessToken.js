@@ -1,15 +1,20 @@
-const rp = require('request-promise-native');
-const { writeFile, readFile } = require('fs');
+const rp = require("request-promise-native");
+const FormData = require('form-data');
+const rps = require('request-promise');
+const axios = require('axios');
+const { resolve } = require('path');
+const qs = require('querystring');
+const { writeFile, readFile, readFileSync, createReadStream } = require("fs");
 
 // 引入config模块
-const { appID, appsecret } = require('../config')
-
+const { appID, appsecret } = require("../config");
+const { debug } = require("console");
+const { create } = require("domain");
+const { type } = require("os");
 
 // 定义类，获取access_token
 class Wechat {
-  constructor () {
-    
-  }
+  constructor() {}
 
   /**
    * @description: 用来获取access_token
@@ -19,22 +24,22 @@ class Wechat {
    */
   getAccessToken() {
     // 定义请求地址
-    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appID}&secret=${appsecret}`
+    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appID}&secret=${appsecret}`;
 
     return new Promise((resolve, reject) => {
-      rp({method: 'GET', url, json: true})
-      .then(res => {
-        // 设置access_token的过期时间
-        res.expires_in = Date.now() + (res.expires_in - 300) * 1000;
+      rp({ method: "GET", url, json: true })
+        .then((res) => {
+          // 设置access_token的过期时间
+          res.expires_in = Date.now() + (res.expires_in - 300) * 1000;
 
-        // 更改Promise的状态为成功
-        resolve(res);
-      })
-      .catch(err => {
-        // 更改Promise的状态为失败
-        reject('getAccessToken方法出了问题：' + err);
-      })
-    })
+          // 更改Promise的状态为成功
+          resolve(res);
+        })
+        .catch((err) => {
+          // 更改Promise的状态为失败
+          reject("getAccessToken方法出了问题：" + err);
+        });
+    });
   }
 
   /**
@@ -43,20 +48,20 @@ class Wechat {
    * @return {*}
    * @author: jianyun
    */
-  saveAccessToken (accessToken) {
+  saveAccessToken(accessToken) {
     return new Promise((resolve, reject) => {
       // 将对像转换为json字符串
       accessToken = JSON.stringify(accessToken);
       // 将accessToken保存为文件
-      writeFile('./accessToken.txt', accessToken, err => {
+      writeFile("./accessToken.txt", accessToken, (err) => {
         if (!err) {
-          console.log('文件保存成功~');
+          console.log("文件保存成功~");
           resolve();
         } else {
-          reject('saveAccessToken方法出了问题：', err);
+          reject("saveAccessToken方法出了问题：", err);
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -65,19 +70,19 @@ class Wechat {
    * @return {*}
    * @author: jianyun
    */
-  readAccessToken () {
+  readAccessToken() {
     return new Promise((resolve, reject) => {
-      readFile('./accessToken.txt', (err, data) => {
+      readFile("./accessToken.txt", (err, data) => {
         if (!err) {
           // 将data转换为js对象
           data = JSON.parse(data);
-          console.log('文件读取成功~');
+          console.log("文件读取成功~");
           resolve(data);
         } else {
-          reject('readAccessToken方法出了问题：' + err);
+          reject("readAccessToken方法出了问题：" + err);
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -86,7 +91,7 @@ class Wechat {
    * @return {*}
    * @author: jianyun
    */
-  isValidAccessToken (data) {
+  isValidAccessToken(data) {
     if (!data & !data.access_token & !data.expires_in) {
       return false;
     }
@@ -100,18 +105,18 @@ class Wechat {
    * @return {*}
    * @author: jianyun
    */
-  fetchAccessToken () {
+  fetchAccessToken() {
     // 优化
     if (this.access_token && this.expires_in && this.isValidAccessToken(this)) {
       // 说明之前保存过access_token，并且未过期，可以直接使用
       return Promise.resolve({
         access_token: this.access_token,
-        expires_in: this.expires_in
-      })
+        expires_in: this.expires_in,
+      });
     }
 
     return this.readAccessToken()
-      .then(async res => {
+      .then(async (res) => {
         // 本地有文件，判断是否过期
         if (this.isValidAccessToken(res)) {
           // 有效的
@@ -122,7 +127,7 @@ class Wechat {
           // 保存为本地文件
           await this.saveAccessToken(res);
 
-          Promise.resolve(res);
+          return Promise.resolve(res);
         }
       })
       .catch(async err => {
@@ -132,13 +137,64 @@ class Wechat {
         // 保存为本地文件
         await this.saveAccessToken(res);
 
-        Promise.resolve(res);
+        return Promise.resolve(res);
       })
       .then( res => {
         // 将access_token挂在到this上
         this.access_token = res.access_token;
         this.expires_in = res.expires_in;
         return Promise.resolve(res);
-      })
+      });
+  }
+
+  /**
+   * @description: 上传图片
+   * @param {*} buffer
+   * @return {*}
+   * @author: jianyun
+   */
+  uploadImage(fileName) {
+    // 获取文件绝对路径
+    const filePath = resolve(__dirname, '../assets/images', fileName);
+
+    return new Promise( async (resolve, reject) => {
+      const { access_token } = await this.fetchAccessToken();
+      const url = `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${access_token}`;
+      // 使用request-promise-native库
+      // const formData = {
+      //   buffer: createReadStream(filePath)
+      // }
+      // const result = rp({
+      //   method: 'POST',
+      //   url,
+      //   json: true,
+      //   formData
+      // })
+
+      let formData = new FormData();
+      formData.append('buffer', createReadStream(filePath));
+      
+      let headers = formData.getHeaders();//获取headers
+      //获取form-data长度
+      formData.getLength(async function(err, length){
+       if (err) {
+          return  ;
+        }
+       //设置长度，important!!!
+       headers['content-length']=length;
+      
+      await axios.post(url,formData,{headers}).then(res=>{                    
+          resolve(res.data);
+        }).catch(err => {
+          reject('出错：' + err);
+       })
+      })	
+    })
   }
 }
+
+let w = new Wechat();
+
+w.uploadImage('logo.jpg').then(res => {
+  console.log(res, '+++')
+})
