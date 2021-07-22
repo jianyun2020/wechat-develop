@@ -42,3 +42,22 @@ access_token是公众号的全局唯一接口调用凭据
       - 直接使用
 - 本地没有文件
   - 发送请求获取access_token(getAccessToken)，保存为本地文件(saveAccessToken)，直接使用
+
+
+# 链接数据库(Mysql)
+
+1. 安装：`npm install mysql`
+2. 连接数据库：
+
+```js
+const mysql = require('mysql');
+
+const connection = mysql.crateConnection({
+  host: 'localhost', // 主机名
+  user: 'root', // 用户名
+  password: 'root', // 用户密码
+  database: 'wechat' // 数据库名
+})
+
+connection.connect();
+```
