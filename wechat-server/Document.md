@@ -52,7 +52,7 @@ access_token是公众号的全局唯一接口调用凭据
 ```js
 const mysql = require('mysql');
 
-const connection = mysql.crateConnection({
+const connection = mysql.createConnection({
   host: 'localhost', // 主机名
   user: 'root', // 用户名
   password: 'root', // 用户密码
