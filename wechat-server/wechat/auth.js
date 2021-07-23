@@ -16,6 +16,9 @@ module.exports = () => {
       nonce: '1341979595' 微信的随机数字
     }
     */
+
+    console.log('req: ', req)
+    // console.log('res: ', res)
   
     const { signature, echostr, timestamp, nonce } = req.query;
     const { token } = config;
