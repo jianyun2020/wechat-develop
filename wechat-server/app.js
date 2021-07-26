@@ -31,6 +31,12 @@ const app = express();
 
 // 接收处理所有消息
 app.use(auth());
+app.use(express.static('./bin/www'))
+
+app.get('/hh', (req, res) => {
+  res.send('hh')
+})
+
 
 
 

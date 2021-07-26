@@ -28,12 +28,14 @@ module.exports = () => {
     const str = arr.join('');
     const sha1Str = sha1(str); // sha1加密
   
-    if (sha1Str === signature) {
-      // 消息来自微信服务器，返回echostr给微信服务器
-      res.send(echostr);
-    } else {
-      // 消息不是来自微信服务器，返回error
-      res.end('error');
-    }
+    // if (sha1Str === signature) {
+    //   // 消息来自微信服务器，返回echostr给微信服务器
+    //   res.send(echostr);
+    // } else {
+    //   // 消息不是来自微信服务器，返回error
+    //   res.end('error');
+    // }
+
+    next()
   }
 }
