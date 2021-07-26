@@ -12,10 +12,12 @@ db.connect(err => {
   console.log('数据库连接成功...');
 });
 
-// // 创建表
+// 创建表
 // let sql1 = `CREATE TABLE IF NOT EXISTS user_info(
 //   id INT UNSIGNED AUTO_INCREMENT,
 //   openid VARCHAR(32) NOT NULL UNIQUE,
+//   code VARCHAR(20) NOT NULL UNIQUE,
+//   card_id VARCHAR(32) NOT NULL,
 //   phone_number INT(11),
 //   invatation_code VARCHAR(100),
 //   is_active INT(1) DEFAULT 0,

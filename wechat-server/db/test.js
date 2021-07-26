@@ -61,10 +61,42 @@ class InviteCodeUtil {
 
   // 根据id生成6位邀请码
   createCode(id) {
+    let code = this.int2chars(id);
+    if (code.length < (this.minCodeLen-1)) {
+      code = code + this.stopChar + this.codeTail(code)
+    } else if (code.length < this.minCodeLen) {
+      code = code + this.stopChar
+    }
+    return code
   }
+
+  codeTail (code) {
+    let res = "";
+    let lastChar = code.substring(code.length-1, code.length);
+    for (let i = 0; i < (this.minCodeLen-1-code.length); i++){
+      res += lastChar;
+    
+    }
+    return res
+  }
+
   
+
+  int2chars(id) {
+    const div = Math.floor(id / this.offset);
+    const remainder = id % this.offset;
+
+    if (div === 0) {
+      return this.codeMap[id];
+    } else if (div < this.offset) {
+      return this.codeMap[div] + this.codeMap[remainder];
+    } else {
+      return this.int2chars(div) + this.codeMap[remainder];
+    }
+  }
+
 }
 
 let a = new InviteCodeUtil();
 
-console.log(a.intMap.A)
+console.log(a.createCode(12313))
