@@ -1,5 +1,3 @@
-const openid = 'o6_bmjrPTlm6_2sgVt7hMZOPfL2M';
-
 class InviteCodeUtil {
   offset = 24;
   stopChar = 'Z';
