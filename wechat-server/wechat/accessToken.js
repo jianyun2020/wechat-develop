@@ -165,6 +165,60 @@ class Wechat {
             expires_in: Date.now() + (res.expires_in - 300) * 1000
           })
         })
+        .catch(err => {
+          reject('getTicket方法出错： ' + err);
+        })
+    })
+  }
+
+  // 保存ticket
+  saveTicket(ticket) {
+    // 将对象转化为字符串
+    ticket = JSON.stringify(ticket);
+
+    return new Promise((resolve, reject) => {
+      writeFile('./ticket.txt', ticket, err => {
+        if (!err) {
+          console.log('ticket保存成功');
+          resolve();
+        } else {
+          reject('saveTicket方法出错： ' + err);
+        }
+      })
+    })
+  }
+
+  // 读取ticket
+  readTicket() {
+    
+    return new Promise((resolve, reject) => {
+      readFile('./ticket.txt', (err, data) => {
+        if (!err) {
+          console.log('文件读取成功~');
+          // 将json字符串转化为js对象
+          data = JSON.parse(data);
+          resolve(data);
+        } else {
+          reject('saveTicket方法出错: ' + err);
+        }
+      })
+    })
+  }
+
+  // 验证ticket是否有效
+  isValidTicket(data) {
+    if (!data && !data.ticket && !data.expires_in) {
+      return;
+    }
+
+    // 检测ticket是否在有效期内
+    return data.expires_in > Date.now();
+  }
+
+  // 获取没有过期的ticket
+  fetchTicket() {
+
+    return new Promise((resolve, reject) => {
       
     })
   }
