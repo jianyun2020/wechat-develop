@@ -7,6 +7,11 @@ const config = require('../config');
 // 引入tool模块
 const { getUserDataAsync, parseXMLAsync, formatMessage } = require('../utils/tool')
 
+// 引入template模块
+const template = require('./template');
+// 引入reply模块
+const reply = require('./reply');
+
 module.exports = () => {
 
   return async (req, res, next) => {
@@ -88,24 +93,11 @@ module.exports = () => {
       //   MsgId: '23299569001712404'
       // }
 
-      if (message.MsgType === 'text') {
-        if (message.Content === '1') {
-          content = '你真帅'
-        } else if (message.Content.match('爱')) {
-          content = 'wooooo'
-        }
-      }
+      const options = reply(message);
+    
+      // 最终回复用户的消息
+      const replyMessage = template(options);
 
-      let replyMessage = `
-      <xml>
-        <ToUserName><![CDATA[${message.FromUserName}]]></ToUserName>
-        <FromUserName><![CDATA[${message.ToUserName}]]></FromUserName>
-        <CreateTime>${Date.now()}}</CreateTime>
-        <MsgType><![CDATA[text]]></MsgType>
-        <Content><![CDATA[${content}]]></Content>
-      </xml>
-      `
-      
       res.end(replyMessage)
     } else {
       // 消息不是来自微信服务器，返回error

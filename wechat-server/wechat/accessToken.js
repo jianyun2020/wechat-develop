@@ -8,9 +8,8 @@ const { writeFile, readFile, readFileSync, createReadStream } = require("fs");
 
 // 引入config模块
 const { appID, appsecret } = require("../config");
-const { debug } = require("console");
-const { create } = require("domain");
-const { type } = require("os");
+// 引入api模块
+const api = require('../utils/api');
 
 // 定义类，获取access_token
 class Wechat {
@@ -146,6 +145,30 @@ class Wechat {
         return Promise.resolve(res);
       });
   }
+
+  /* =================================获取js-sdk所需ticket Start============================= */
+
+  // 获取ticket
+  getTicket() {
+
+    return new Promise(async (resolve, reject) => {
+      // 获取access_token
+      const data = await this.fetchAccessToken();
+      // 定义请求地址
+      const url = `${api.ticket}&accecc_token=${data.access_token}`;
+      
+      // 发送请求
+      rp({method: 'GET', url, json: true})
+        .then(res => {
+          resolve({
+            ticket: res.ticket,
+            expires_in: Date.now() + (res.expires_in - 300) * 1000
+          })
+        })
+      
+    })
+  }
+  /* =================================获取js-sdk所需ticket End============================= */
 
   /**
    * @description: 上传图片

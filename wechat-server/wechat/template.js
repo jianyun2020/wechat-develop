@@ -1,14 +1,14 @@
 
 module.exports = options => {
   let replyMessage = `<xml>
-    <ToUserName><![CDATA[${options.FromUserName}]]></ToUserName>
-    <FromUserName><![CDATA[${options.ToUserName}]]></FromUserName>
+    <ToUserName><![CDATA[${options.toUserName}]]></ToUserName>
+    <FromUserName><![CDATA[${options.fromUserName}]]></FromUserName>
     <CreateTime>${Date.now()}}</CreateTime>
     <MsgType><![CDATA[${options.msgType}]]></MsgType>`;
     
-  switch (options) {
+  switch (options.msgType) {
     case 'text':
-      replyMessage += `<Content><![CDATA[${options.Content}]]></Content>`
+      replyMessage += `<Content><![CDATA[${options.content}]]></Content>`
       break;
     case 'image':
       replyMessage += `<Image><MediaId><![CDATA[${options.mediaId}]]></MediaId></Image>`
@@ -32,11 +32,25 @@ module.exports = options => {
       <ThumbMediaId><![CDATA[${options.mediaId}]]></ThumbMediaId>
     </Music>`
       break;
-    case 'text':
-      replyMessage += `<Content><![CDATA[${options.Content}]]></Content>`
+    case 'news':
+      replyMessage += `<ArticleCount>${options.content.length}</ArticleCount>
+      <Articles>`
+      options.content.forEach(item => {
+        replyMessage += `
+        <item>
+        <Title><![CDATA[${item.title1}]]></Title>
+        <Description><![CDATA[${item.description1}]]></Description>
+        <PicUrl><![CDATA[${item.picurl}]]></PicUrl>
+        <Url><![CDATA[${item.url}]]></Url>
+        </item>
+        `
+      })
+
+      replyMessage += `</Articles>`
       break;
-  
   }  
 
-  replyMessage += '</xml>'
+  replyMessage += '</xml>';
+
+  return replyMessage;
 }
