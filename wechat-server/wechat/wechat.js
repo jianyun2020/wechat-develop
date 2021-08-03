@@ -465,15 +465,17 @@ class Wechat {
   }
 }
 
-let w = new Wechat();
+// let w = new Wechat();
 
-(async () => {
-  let res = await w.fetchTicket();
-  console.log(res);
+// (async () => {
+//   let res = await w.fetchTicket();
+//   console.log(res);
 
-})()
+// })()
 // w.updateVipInfo('668862585915')
 
 
 // card_id:  pZNUz6hxXbuTklkEfqSSuMeTDGGE
 // ticket: 'gQG68DwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAyelZTaVFkQWxjUEcxV3FDSmh3NGEAAgSSn_1gAwQIBwAA',
+
+module.exports = Wechat;
