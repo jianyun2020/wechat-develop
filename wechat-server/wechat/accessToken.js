@@ -4,12 +4,14 @@ const rps = require("request-promise");
 const axios = require("axios");
 const { resolve } = require("path");
 const qs = require("querystring");
-const { writeFile, readFile, readFileSync, createReadStream } = require("fs");
+const { createReadStream } = require("fs");
 
 // 引入config模块
 const { appID, appsecret } = require("../config");
 // 引入api模块
 const api = require('../utils/api');
+
+const { writeFileAsync, readFileAsync } = require('../utils/tool');
 
 // 定义类，获取access_token
 class Wechat {
@@ -48,19 +50,7 @@ class Wechat {
    * @author: jianyun
    */
   saveAccessToken(accessToken) {
-    return new Promise((resolve, reject) => {
-      // 将对像转换为json字符串
-      accessToken = JSON.stringify(accessToken);
-      // 将accessToken保存为文件
-      writeFile("./accessToken.txt", accessToken, (err) => {
-        if (!err) {
-          console.log("文件保存成功~");
-          resolve();
-        } else {
-          reject("saveAccessToken方法出了问题：", err);
-        }
-      });
-    });
+    return writeFileAsync(accessToken, 'access_token.txt');
   }
 
   /**
@@ -70,18 +60,7 @@ class Wechat {
    * @author: jianyun
    */
   readAccessToken() {
-    return new Promise((resolve, reject) => {
-      readFile("./accessToken.txt", (err, data) => {
-        if (!err) {
-          // 将data转换为js对象
-          data = JSON.parse(data);
-          console.log("文件读取成功~");
-          resolve(data);
-        } else {
-          reject("readAccessToken方法出了问题：" + err);
-        }
-      });
-    });
+    return readFileAsync('access_token.txt');
   }
 
   /**
@@ -155,8 +134,8 @@ class Wechat {
       // 获取access_token
       const data = await this.fetchAccessToken();
       // 定义请求地址
-      const url = `${api.ticket}&accecc_token=${data.access_token}`;
-      
+      const url = `${api.ticket}&access_token=${data.access_token}`;
+      console.log(url)
       // 发送请求
       rp({method: 'GET', url, json: true})
         .then(res => {
@@ -173,36 +152,12 @@ class Wechat {
 
   // 保存ticket
   saveTicket(ticket) {
-    // 将对象转化为字符串
-    ticket = JSON.stringify(ticket);
-
-    return new Promise((resolve, reject) => {
-      writeFile('./ticket.txt', ticket, err => {
-        if (!err) {
-          console.log('ticket保存成功');
-          resolve();
-        } else {
-          reject('saveTicket方法出错： ' + err);
-        }
-      })
-    })
+    return writeFileAsync(ticket, 'ticket.txt');
   }
 
   // 读取ticket
   readTicket() {
-    
-    return new Promise((resolve, reject) => {
-      readFile('./ticket.txt', (err, data) => {
-        if (!err) {
-          console.log('文件读取成功~');
-          // 将json字符串转化为js对象
-          data = JSON.parse(data);
-          resolve(data);
-        } else {
-          reject('saveTicket方法出错: ' + err);
-        }
-      })
-    })
+    return readFileAsync('ticket.txt');
   }
 
   // 验证ticket是否有效
@@ -218,9 +173,36 @@ class Wechat {
   // 获取没有过期的ticket
   fetchTicket() {
 
-    return new Promise((resolve, reject) => {
-      
-    })
+    if (this.ticket && this.ticket_expires_in && this.isValidTicket(this)) {
+      return Promise.resolve({
+        ticket: this.ticket,
+        expires_in: this.ticket_expires_in
+      })
+    }
+
+    return this.readTicket()
+      .then(async res => {
+        if (this.isValidTicket(res)) {
+          return Promise.resolve(res);
+        } else {
+          const res = await this.getTicket();
+          await this.saveTicket(res);
+
+          return Promise.resolve(res);
+        }
+      })
+      .catch(async err => {
+        const res = await this.getTicket();
+        await this.saveTicket(res);
+
+        return Promise.resolve(res);
+      })
+      .then(res => {
+        this.ticket = res.ticket;
+        this.ticket_expires_in = res.expires_in;
+
+        return Promise.resolve(res);
+      })
   }
   /* =================================获取js-sdk所需ticket End============================= */
 
@@ -485,7 +467,12 @@ class Wechat {
 
 let w = new Wechat();
 
-w.updateVipInfo('668862585915')
+(async () => {
+  let res = await w.fetchTicket();
+  console.log(res);
+
+})()
+// w.updateVipInfo('668862585915')
 
 
 // card_id:  pZNUz6hxXbuTklkEfqSSuMeTDGGE
